@@ -1,6 +1,14 @@
 import express from 'express';
-import { dealInsertSchema, revenueProjectionInsertSchema, auditLogInsertSchema } from '../shared/schema.js';
-import { storage } from './storage.js';
+import { 
+  dealInsertSchema, 
+  revenueProjectionInsertSchema, 
+  auditLogInsertSchema,
+  userInsertSchema,
+  projectInsertSchema,
+  templateInsertSchema,
+  generationHistoryInsertSchema
+} from '../shared/schema';
+import { storage } from './storage';
 
 const router = express.Router();
 
@@ -276,6 +284,225 @@ router.get('/api/analytics/revenue-forecast', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch revenue forecast' });
+  }
+});
+
+// AI App Builder Routes
+
+// User routes
+router.get('/api/users', async (req, res) => {
+  try {
+    const users = await storage.getAllUsers();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+router.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await storage.getUserById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
+router.post('/api/users', async (req, res) => {
+  try {
+    const validatedData = userInsertSchema.parse(req.body);
+    const user = await storage.createUser(validatedData);
+    
+    // Create audit log
+    await createAuditLog('CREATE', 'User', user.id, undefined, user);
+    
+    res.status(201).json(user);
+  } catch (error) {
+    if (error instanceof Error && 'issues' in error) {
+      return res.status(400).json({ error: 'Validation failed', details: error.issues });
+    }
+    res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
+// Project routes
+router.get('/api/projects', async (req, res) => {
+  try {
+    const { userId, status } = req.query;
+    
+    let projects;
+    if (userId) {
+      projects = await storage.getProjectsByUserId(userId as string);
+    } else if (status) {
+      projects = await storage.getProjectsByStatus(status as string);
+    } else {
+      projects = await storage.getAllProjects();
+    }
+    
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch projects' });
+  }
+});
+
+router.get('/api/projects/:id', async (req, res) => {
+  try {
+    const project = await storage.getProjectById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    res.json(project);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch project' });
+  }
+});
+
+router.post('/api/projects', async (req, res) => {
+  try {
+    const validatedData = projectInsertSchema.parse(req.body);
+    const project = await storage.createProject(validatedData);
+    
+    // Create audit log
+    await createAuditLog('CREATE', 'Project', project.id, undefined, project);
+    
+    res.status(201).json(project);
+  } catch (error) {
+    if (error instanceof Error && 'issues' in error) {
+      return res.status(400).json({ error: 'Validation failed', details: error.issues });
+    }
+    res.status(500).json({ error: 'Failed to create project' });
+  }
+});
+
+router.patch('/api/projects/:id', async (req, res) => {
+  try {
+    const oldProject = await storage.getProjectById(req.params.id);
+    if (!oldProject) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const validatedData = projectInsertSchema.partial().parse(req.body);
+    const updatedProject = await storage.updateProject(req.params.id, validatedData);
+    
+    if (!updatedProject) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Create audit log
+    await createAuditLog('UPDATE', 'Project', req.params.id, oldProject, updatedProject);
+    
+    res.json(updatedProject);
+  } catch (error) {
+    if (error instanceof Error && 'issues' in error) {
+      return res.status(400).json({ error: 'Validation failed', details: error.issues });
+    }
+    res.status(500).json({ error: 'Failed to update project' });
+  }
+});
+
+// Template routes
+router.get('/api/templates', async (req, res) => {
+  try {
+    const { category, popular } = req.query;
+    
+    let templates;
+    if (category) {
+      templates = await storage.getTemplatesByCategory(category as string);
+    } else if (popular) {
+      templates = await storage.getPopularTemplates(parseInt(popular as string) || 10);
+    } else {
+      templates = await storage.getAllTemplates();
+    }
+    
+    res.json(templates);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch templates' });
+  }
+});
+
+router.get('/api/templates/:id', async (req, res) => {
+  try {
+    const template = await storage.getTemplateById(req.params.id);
+    if (!template) {
+      return res.status(404).json({ error: 'Template not found' });
+    }
+    res.json(template);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch template' });
+  }
+});
+
+router.post('/api/templates', async (req, res) => {
+  try {
+    const validatedData = templateInsertSchema.parse(req.body);
+    const template = await storage.createTemplate(validatedData);
+    
+    // Create audit log
+    await createAuditLog('CREATE', 'Template', template.id, undefined, template);
+    
+    res.status(201).json(template);
+  } catch (error) {
+    if (error instanceof Error && 'issues' in error) {
+      return res.status(400).json({ error: 'Validation failed', details: error.issues });
+    }
+    res.status(500).json({ error: 'Failed to create template' });
+  }
+});
+
+// AI Generation endpoint (placeholder for now)
+router.post('/api/generate', async (req, res) => {
+  try {
+    const { prompt, uiLibrary, generationType, userId } = req.body;
+    
+    // For now, return a placeholder response
+    // In a real implementation, this would call OpenAI API
+    const mockProject = {
+      id: 'generated-' + Date.now(),
+      prompt,
+      uiLibrary: uiLibrary || 'tailwind',
+      generationType: generationType || 'full-stack',
+      status: 'completed',
+      frontendCode: JSON.stringify({
+        'App.tsx': `import React from 'react';
+        
+function App() {
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold">Generated App</h1>
+      <p>This app was generated from: ${prompt}</p>
+    </div>
+  );
+}
+
+export default App;`,
+        'package.json': JSON.stringify({
+          name: 'generated-app',
+          dependencies: {
+            react: '^18.0.0',
+            'react-dom': '^18.0.0'
+          }
+        })
+      }),
+      backendCode: JSON.stringify({
+        'index.js': `const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+  res.json({ message: 'Generated API for: ${prompt}' });
+});
+
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
+});`
+      })
+    };
+    
+    res.json(mockProject);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate project' });
   }
 });
 

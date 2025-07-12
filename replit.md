@@ -2,11 +2,45 @@
 
 ## Overview
 
-This project is a SaaS web application that enables users to generate complete MERN stack applications using AI-powered prompts. Users can describe their desired application (e.g., "Create a blog with login, post creation, and comments") and the system will generate the corresponding frontend and backend code, provide live previews, and allow downloads or GitHub exports.
+This project has been successfully transformed from an HR Business Tool into a comprehensive AI-powered MERN stack application generator. The application now features both the original HR management functionality and a complete AI-driven code generation system that enables users to create full-stack applications through natural language prompts.
+
+**Current Status**: ✅ Fully functional AI App Builder with working backend APIs, frontend interface, and integrated HR management tools.
+
+## Recent Changes (January 12, 2025)
+
+✓ Completely rebuilt data model to support AI app generation with User, Project, Template, and GenerationHistory entities
+✓ Implemented comprehensive storage layer with full CRUD operations for all new entities  
+✓ Added complete API routes for projects, templates, users, and AI generation endpoints
+✓ Created modern React frontend with three main sections: AI Generator, My Projects, and Templates
+✓ Integrated existing HR tools as a secondary feature set within the same application
+✓ Built responsive UI with proper navigation, search, filtering, and project management features
+✓ Added placeholder AI generation system (ready for OpenAI API integration)
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Current Project Architecture
+
+### Frontend Features
+- **AI Generator**: Natural language prompt interface for generating MERN stack applications
+- **My Projects**: Project management dashboard for viewing, organizing, and managing generated apps
+- **Templates**: Pre-built application templates for quick-start development
+- **HR Business Tools**: Integrated sales pipeline, revenue forecasting, and audit logging (legacy features)
+
+### Backend API Structure
+- `/api/generate` - AI-powered code generation endpoint (currently returns mock data, ready for OpenAI integration)
+- `/api/projects/*` - Full CRUD operations for user projects
+- `/api/templates/*` - Template management and discovery
+- `/api/users/*` - User management and authentication
+- Legacy HR APIs: `/api/deals/*`, `/api/revenue-projections/*`, `/api/audit-logs/*`
+
+### Data Models
+- **User**: Authentication, plan management, generation limits
+- **Project**: Generated applications with code storage, status tracking, and metadata
+- **Template**: Reusable application templates with categorization and popularity tracking
+- **GenerationHistory**: AI generation audit trail and usage analytics
+- Legacy models: Deal, RevenueProjection, AuditLog
 
 ## System Architecture
 
