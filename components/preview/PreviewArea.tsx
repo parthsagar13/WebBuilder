@@ -36,7 +36,7 @@ export function PreviewArea({ code, isGenerating }: PreviewAreaProps) {
   const getPreviewDimensions = () => {
     switch (viewMode) {
       case 'desktop': 
-        return { width: '100%', height: '100%', maxWidth: 'none' };
+        return { width: '100%', height: '1024px', maxWidth: 'none' };
       case 'tablet': 
         return { width: '768px', height: '1024px', maxWidth: '768px' };
       case 'mobile': 
